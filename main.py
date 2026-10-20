@@ -6,7 +6,7 @@ import pandas as pd
 import numpy as np
 from datetime import datetime
 import requests
-
+from google import genai
 # ==========================================
 # CONFIGURATION: ADD YOUR STOCKS HERE (MAX 50)
 # ==========================================
@@ -105,11 +105,11 @@ def send_push_notification(title, body):
         print(f"Failed to transmit notification: {e}")
 
 def main():
-    from openai import OpenAI
-    client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+
     
     master_report = []
     breakout_alerts = []
+    client=genai.Client()
     
     for ticker in WATCHLIST:
         try:
@@ -131,12 +131,15 @@ def main():
                "action_flag": "URGENT_BUY / MONITOR / AVOID"
             }}
             """
-            response = client.chat.completions.create(
-                model="gpt-4o",
-                messages=[{"role": "user", "content": prompt}],
-                response_format={"type": "json_object"}
-            )
-            res = json.loads(response.choices.message.content)
+                    response = client.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=prompt,
+            config={
+                'response_mime_type': 'application/json'
+            }
+        )
+        res = json.loads(response.text)
+
             master_report.append(res)
             
             if res.get("breakout_prediction") in ["IMMINENT", "ACCELERATING"] or res.get("action_flag") == "URGENT_BUY":
