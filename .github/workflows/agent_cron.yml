@@ -1,0 +1,27 @@
+name: Daily Stock AI Agent Core
+
+on:
+  schedule:
+    - cron: '30 15 * * *'  # This fires at exactly 9:00 PM IST (15:30 UTC)
+  workflow_dispatch:
+
+jobs:
+  execute-analysis:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone Repository
+        uses: actions/checkout@v4
+
+      - name: Initialize Runtime Environment
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Quant Dependencies
+        run: pip install pandas numpy yfinance openai requests
+
+      - name: Run Analytical Sweep
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          PUSHBULLET_ACCESS_TOKEN: ${{ secrets.PUSHBULLET_ACCESS_TOKEN }}
+        run: python main.py
